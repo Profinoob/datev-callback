@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>ProfiWare · DATEV</title>
+  <style>
+    body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #111; color: #fff; }
+    .box { text-align: center; padding: 2rem; border-radius: 1rem; background: #1a1a1a; min-width: 320px; }
+    h2 { margin: 0 0 .5rem; }
+    p { color: #aaa; margin: 0 0 1.5rem; }
+    button { border: none; padding: .6rem 1.5rem; border-radius: .5rem; cursor: pointer; font-size: 1rem; color: #fff; }
+    .ok  { border: 1px solid rgba(16,185,129,0.4); } .ok  h2 { color: #10B981; } .ok  button { background: #10B981; }
+    .err { border: 1px solid rgba(239,68,68,0.4);  } .err h2 { color: #EF4444; } .err button { background: #EF4444; }
+  </style>
+</head>
+<body>
+<div class="box ok" id="box">
+  <h2 id="titel">✓ DATEV-Anmeldung erfolgreich</h2>
+  <p id="text">ProfiWare wird verbunden … Fenster schließt sich automatisch.</p>
+  <button onclick="window.close()">Schließen</button>
+</div>
+<script>
+  const p     = new URLSearchParams(window.location.search);
+  const code  = p.get('code');
+  const state = p.get('state');
+  const error = p.get('error');
+  const desc  = p.get('error_description');
+
+  if (error) {
+    document.getElementById('box').className   = 'box err';
+    document.getElementById('titel').textContent = '✗ DATEV-Anmeldung fehlgeschlagen';
+    document.getElementById('text').textContent  = desc || error;
+    window.opener?.postMessage({ type: 'datev_oauth_fehler', fehler: desc || error }, '*');
+  } else if (code) {
+    window.opener?.postMessage({ type: 'datev_code', code, state }, '*');
+  } else {
+    document.getElementById('box').className   = 'box err';
+    document.getElementById('titel').textContent = '✗ Kein Autorisierungscode';
+    document.getElementById('text').textContent  = 'DATEV hat keinen Code zurückgegeben.';
+    window.opener?.postMessage({ type: 'datev_oauth_fehler', fehler: 'Kein Code erhalten' }, '*');
+  }
+
+  setTimeout(() => window.close(), 3000);
+</script>
+</body>
+</html>
